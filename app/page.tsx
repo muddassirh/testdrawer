@@ -3,7 +3,22 @@
 import * as React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, TrendingUp } from "lucide-react";
+import {
+  Search,
+  Plus,
+  TrendingUp,
+  Home as HomeIcon,
+  BarChart3,
+  DollarSign,
+  Box,
+  Grid3x3,
+  Truck,
+  Tag,
+  Users,
+  UserCheck,
+  FileText,
+  Settings,
+} from "lucide-react";
 import { ProductTable } from "@/components/product-table";
 import { ProductFormModal } from "@/components/product-form-modal";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,7 +28,7 @@ import { initialProducts } from "@/lib/mockData";
 import { Product, ProductFormData } from "@/types";
 import { DeleteConfirmationDialog } from "@/components/DeleteConfirmationDialog";
 
-// Animation variants for different elements
+// Animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -38,19 +53,6 @@ const itemVariants = {
   },
 };
 
-const headerVariants = {
-  hidden: { opacity: 0, y: -50 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 120,
-      damping: 20,
-    },
-  },
-};
-
 const statCardVariants = {
   hidden: { opacity: 0, scale: 0.8, y: 20 },
   visible: {
@@ -64,8 +66,8 @@ const statCardVariants = {
     },
   },
   hover: {
-    scale: 1.05,
-    y: -5,
+    scale: 1.02,
+    y: -2,
     boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
     transition: {
       type: "spring",
@@ -91,35 +93,9 @@ const searchBarVariants = {
   },
 };
 
-const buttonVariants = {
-  hidden: { opacity: 0, x: 50 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 15,
-    },
-  },
-  hover: {
-    scale: 1.05,
-    transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 10,
-    },
-  },
-  tap: {
-    scale: 0.95,
-  },
-};
-
-// Simulated API functions (replace with real API calls)
+// Simulated API functions
 const fetchProducts = async (): Promise<Product[]> => {
-  // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 500));
-  // In real app, this would be: return fetch('/api/products').then(res => res.json())
   const stored = localStorage.getItem("products");
   return stored ? JSON.parse(stored) : initialProducts;
 };
@@ -163,6 +139,8 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [editProduct, setEditProduct] = React.useState<Product | null>(null);
+  const [buttonPosition, setButtonPosition] = React.useState({ x: 0, y: 0 });
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [productToDelete, setProductToDelete] = React.useState<Product | null>(
     null
@@ -170,20 +148,17 @@ export default function HomePage() {
 
   const queryClient = useQueryClient();
 
-  // Initialize localStorage on mount
   React.useEffect(() => {
     if (!localStorage.getItem("products")) {
       localStorage.setItem("products", JSON.stringify(initialProducts));
     }
   }, []);
 
-  // Fetch products with TanStack Query
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["products"],
     queryFn: fetchProducts,
   });
 
-  // Create product mutation
   const createMutation = useMutation({
     mutationFn: createProduct,
     onSuccess: () => {
@@ -192,7 +167,6 @@ export default function HomePage() {
     },
   });
 
-  // Update product mutation
   const updateMutation = useMutation({
     mutationFn: updateProduct,
     onSuccess: () => {
@@ -202,7 +176,6 @@ export default function HomePage() {
     },
   });
 
-  // Delete product mutation
   const deleteMutation = useMutation({
     mutationFn: deleteProduct,
     onSuccess: () => {
@@ -210,7 +183,6 @@ export default function HomePage() {
     },
   });
 
-  // Filter products based on search
   const filteredProducts = React.useMemo(() => {
     if (!searchQuery) return products;
     return products.filter(
@@ -221,7 +193,6 @@ export default function HomePage() {
     );
   }, [products, searchQuery]);
 
-  // Calculate stats
   const stats = React.useMemo(
     () => ({
       total: products.length,
@@ -268,6 +239,13 @@ export default function HomePage() {
   };
 
   const openCreateModal = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setButtonPosition({
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      });
+    }
     setEditProduct(null);
     setIsModalOpen(true);
   };
@@ -281,244 +259,309 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header with Animation */}
-      <motion.header
-        className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-        variants={headerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        <div className="container flex h-16 items-center justify-between">
+    <div className="flex min-h-screen bg-background">
+      {/* Sidebar */}
+      <aside className="w-64 border-r bg-muted/30 p-4">
+        <div className="mb-8 flex items-center gap-2 px-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded bg-primary text-primary-foreground font-bold text-sm">
+            SP
+          </div>
+          <div>
+            <div className="text-sm font-semibold">Organization</div>
+          </div>
+        </div>
+
+        <nav className="space-y-1">
+          <div className="mb-2 px-2 text-xs font-semibold text-muted-foreground">
+            AP
+          </div>
+
+          <a
+            href="#"
+            className="flex items-center gap-3 rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-foreground"
+          >
+            <HomeIcon className="h-4 w-4" />
+            Home
+          </a>
+          <a
+            href="#"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          >
+            <BarChart3 className="h-4 w-4" />
+            Analytics
+          </a>
+          <a
+            href="#"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          >
+            <DollarSign className="h-4 w-4" />
+            Sales
+          </a>
+
+          <div className="mb-2 mt-6 px-2 text-xs font-semibold text-muted-foreground">
+            Catalog
+          </div>
+
+          <a
+            href="#"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          >
+            <Box className="h-4 w-4" />
+            Products
+          </a>
+          <a
+            href="#"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          >
+            <Grid3x3 className="h-4 w-4" />
+            Categories
+          </a>
+          <a
+            href="#"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          >
+            <Truck className="h-4 w-4" />
+            Suppliers
+          </a>
+
+          <div className="mb-2 mt-6 px-2 text-xs font-semibold text-muted-foreground">
+            Marketing
+          </div>
+
+          <a
+            href="#"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          >
+            <Tag className="h-4 w-4" />
+            Promotions
+          </a>
+
+          <div className="mb-2 mt-6 px-2 text-xs font-semibold text-muted-foreground">
+            People
+          </div>
+
+          <a
+            href="#"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          >
+            <Users className="h-4 w-4" />
+            Customers
+          </a>
+          <a
+            href="#"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          >
+            <UserCheck className="h-4 w-4" />
+            Prescribers
+          </a>
+
+          <div className="mb-2 mt-6 px-2 text-xs font-semibold text-muted-foreground">
+            Insights
+          </div>
+
+          <a
+            href="#"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          >
+            <FileText className="h-4 w-4" />
+            Reports
+          </a>
+        </nav>
+
+        <div className="absolute bottom-4 left-4 flex flex-col gap-2">
+          <button className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent">
+            <Settings className="h-4 w-4 text-muted-foreground" />
+          </button>
+          <button className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 text-white text-xs font-bold">
+            S
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto">
+        <div className="container max-w-7xl py-8">
+          {/* Page Header */}
           <motion.div
-            className="text-2xl font-bold tracking-tight"
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
+            className="mb-8"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{
               type: "spring",
-              stiffness: 260,
-              damping: 20,
+              stiffness: 100,
+              damping: 15,
               delay: 0.1,
             }}
           >
-            dub
-          </motion.div>
-          <nav className="flex items-center gap-6">
-            {["Dashboard", "Products", "Analytics"].map((item, index) => (
-              <motion.a
-                key={item}
-                href="#"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: 0.2 + index * 0.1,
-                  type: "spring",
-                  stiffness: 100,
-                }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {item}
-              </motion.a>
-            ))}
-          </nav>
-        </div>
-      </motion.header>
-
-      {/* Main Content with Stagger Animation */}
-      <main className="container py-8">
-        {/* Page Header with Animation */}
-        <motion.div
-          className="mb-8"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            type: "spring",
-            stiffness: 100,
-            damping: 15,
-            delay: 0.3,
-          }}
-        >
-          <motion.h1
-            className="text-3xl font-bold tracking-tight"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            Products
-          </motion.h1>
-          <motion.p
-            className="text-muted-foreground"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            Manage your product catalog and track performance
-          </motion.p>
-        </motion.div>
-
-        {/* Stats Cards with Stagger and Hover Animations */}
-        <motion.div
-          className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {[
-            {
-              label: "Total Products",
-              value: stats.total,
-              change: "+12% from last month",
-            },
-            {
-              label: "Active Products",
-              value: stats.active,
-              change: "+8% from last month",
-            },
-            {
-              label: "Total Sales",
-              value: stats.totalSales.toLocaleString(),
-              change: "+23% from last month",
-            },
-            {
-              label: "Total Value",
-              value: `$${stats.revenue.toLocaleString()}`,
-              change: "+18% from last month",
-            },
-          ].map((stat, index) => (
-            <motion.div
-              key={stat.label}
-              variants={statCardVariants}
-              whileHover="hover"
-              whileTap="tap"
+            <motion.h1
+              className="text-3xl font-bold tracking-tight"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
             >
-              <Card className="cursor-default overflow-hidden">
-                <CardContent className="p-6">
-                  <motion.div
-                    className="text-sm font-medium text-muted-foreground"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6 + index * 0.1 }}
-                  >
-                    {stat.label}
-                  </motion.div>
-                  <motion.div
-                    className="mt-2 text-3xl font-bold"
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{
-                      delay: 0.7 + index * 0.1,
-                      type: "spring",
-                      stiffness: 200,
-                    }}
-                  >
-                    {stat.value}
-                  </motion.div>
-                  <motion.div
-                    className="mt-2 flex items-center gap-1 text-sm text-green-600"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.8 + index * 0.1 }}
-                  >
+              Home
+            </motion.h1>
+          </motion.div>
+
+          {/* Stats Cards */}
+          <motion.div
+            className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {[
+              {
+                label: "Total Products",
+                value: stats.total,
+                change: "+12% from last month",
+              },
+              {
+                label: "Active Products",
+                value: stats.active,
+                change: "+8% from last month",
+              },
+              {
+                label: "Total Sales",
+                value: stats.totalSales.toLocaleString(),
+                change: "+23% from last month",
+              },
+              {
+                label: "Total Value",
+                value: `$${stats.revenue.toLocaleString()}`,
+                change: "+18% from last month",
+              },
+            ].map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                variants={statCardVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                <Card className="cursor-default overflow-hidden">
+                  <CardContent className="p-6">
                     <motion.div
-                      animate={{
-                        y: [0, -3, 0],
-                      }}
+                      className="text-sm font-medium text-muted-foreground"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 + index * 0.1 }}
+                    >
+                      {stat.label}
+                    </motion.div>
+                    <motion.div
+                      className="mt-2 text-3xl font-bold"
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
                       transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut",
+                        delay: 0.4 + index * 0.1,
+                        type: "spring",
+                        stiffness: 200,
                       }}
                     >
-                      <TrendingUp className="h-4 w-4" />
+                      {stat.value}
                     </motion.div>
-                    {stat.change}
-                  </motion.div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </motion.div>
+                    <motion.div
+                      className="mt-2 flex items-center gap-1 text-sm text-green-600"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 + index * 0.1 }}
+                    >
+                      <motion.div
+                        animate={{
+                          y: [0, -3, 0],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      >
+                        <TrendingUp className="h-4 w-4" />
+                      </motion.div>
+                      {stat.change}
+                    </motion.div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
 
-        {/* Actions Bar with Slide Animations */}
-        <motion.div
-          className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-        >
+          {/* Actions Bar */}
           <motion.div
-            className="relative flex-1 sm:max-w-md"
-            variants={searchBarVariants}
-            initial="hidden"
-            animate="visible"
-            whileFocus={{ scale: 1.02 }}
+            className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
           >
             <motion.div
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              animate={{
-                rotate: [0, 10, -10, 10, 0],
-              }}
-              transition={{
-                duration: 0.5,
-                delay: 1.2,
-              }}
+              className="relative flex-1 sm:max-w-md"
+              variants={searchBarVariants}
+              initial="hidden"
+              animate="visible"
             >
-              <Search className="h-4 w-4" />
-            </motion.div>
-            <Input
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 transition-all focus:shadow-md"
-            />
-          </motion.div>
-          <motion.div
-            variants={buttonVariants}
-            initial="hidden"
-            animate="visible"
-            whileHover="hover"
-            whileTap="tap"
-          >
-            <Button onClick={openCreateModal} className="gap-2">
               <motion.div
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                 animate={{
-                  rotate: [0, 90, 0],
+                  rotate: [0, 10, -10, 10, 0],
                 }}
                 transition={{
-                  duration: 0.3,
+                  duration: 0.5,
+                  delay: 1,
                 }}
               >
-                <Plus className="h-4 w-4" />
+                <Search className="h-4 w-4" />
               </motion.div>
-              Create Product
-            </Button>
+              <Input
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 transition-all focus:shadow-md"
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{
+                type: "spring",
+                stiffness: 100,
+                damping: 15,
+                delay: 0.9,
+              }}
+            >
+              <Button
+                ref={buttonRef}
+                onClick={openCreateModal}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Create Product
+              </Button>
+            </motion.div>
           </motion.div>
-        </motion.div>
 
-        {/* Product Table with Entrance Animation */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            type: "spring",
-            stiffness: 100,
-            damping: 15,
-            delay: 1.2,
-          }}
-        >
-          <ProductTable
-            data={filteredProducts}
-            onEdit={openEditModal}
-            onDelete={handleDeleteProduct}
-            onCreateNew={openCreateModal}
-            globalFilter={searchQuery}
-          />
-        </motion.div>
+          {/* Product Table */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 100,
+              damping: 15,
+              delay: 1,
+            }}
+          >
+            <ProductTable
+              data={filteredProducts}
+              onEdit={openEditModal}
+              onDelete={handleDeleteProduct}
+              onCreateNew={openCreateModal}
+              globalFilter={searchQuery}
+            />
+          </motion.div>
+        </div>
       </main>
 
-      {/* Product Form Modal with AnimatePresence */}
+      {/* Product Form Modal with Button Origin Animation */}
       <AnimatePresence mode="wait">
         {isModalOpen && (
           <ProductFormModal
@@ -526,6 +569,7 @@ export default function HomePage() {
             onClose={closeModal}
             onSubmit={editProduct ? handleEditProduct : handleCreateProduct}
             editProduct={editProduct}
+            buttonPosition={buttonPosition}
           />
         )}
       </AnimatePresence>

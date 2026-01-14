@@ -11,14 +11,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
-  DrawerFooter,
 } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +35,7 @@ interface ProductFormModalProps {
   onClose: () => void;
   onSubmit: (data: ProductFormData) => void;
   editProduct?: Product | null;
+  buttonPosition?: { x: number; y: number };
 }
 
 export function ProductFormModal({
@@ -44,6 +43,7 @@ export function ProductFormModal({
   onClose,
   onSubmit,
   editProduct,
+  buttonPosition = { x: 0, y: 0 },
 }: ProductFormModalProps) {
   const [isMobile, setIsMobile] = React.useState(false);
 
@@ -100,7 +100,12 @@ export function ProductFormModal({
 
   const formContent = (
     <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
-      <div className="space-y-2">
+      <motion.div
+        className="space-y-2"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
         <Label htmlFor="name">Product Name</Label>
         <Input
           id="name"
@@ -110,9 +115,14 @@ export function ProductFormModal({
         {errors.name && (
           <p className="text-sm text-destructive">{errors.name.message}</p>
         )}
-      </div>
+      </motion.div>
 
-      <div className="space-y-2">
+      <motion.div
+        className="space-y-2"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+      >
         <Label htmlFor="description">Description</Label>
         <Textarea
           id="description"
@@ -124,17 +134,27 @@ export function ProductFormModal({
             {errors.description.message}
           </p>
         )}
-      </div>
+      </motion.div>
 
-      <div className="space-y-2">
+      <motion.div
+        className="space-y-2"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
         <Label htmlFor="price">Price</Label>
         <Input id="price" placeholder="$0.00" {...register('price')} />
         {errors.price && (
           <p className="text-sm text-destructive">{errors.price.message}</p>
         )}
-      </div>
+      </motion.div>
 
-      <div className="space-y-2">
+      <motion.div
+        className="space-y-2"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+      >
         <Label htmlFor="category">Category</Label>
         <Input
           id="category"
@@ -144,9 +164,14 @@ export function ProductFormModal({
         {errors.category && (
           <p className="text-sm text-destructive">{errors.category.message}</p>
         )}
-      </div>
+      </motion.div>
 
-      <div className="space-y-2">
+      <motion.div
+        className="space-y-2"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
         <Label htmlFor="status">Status</Label>
         <Select
           value={statusValue}
@@ -166,19 +191,30 @@ export function ProductFormModal({
         {errors.status && (
           <p className="text-sm text-destructive">{errors.status.message}</p>
         )}
-      </div>
+      </motion.div>
 
-      <div className="flex gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={handleClose} className="flex-1">
+      <motion.div
+        className="flex gap-2 pt-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.35 }}
+      >
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleClose}
+          className="flex-1"
+        >
           Cancel
         </Button>
         <Button type="submit" className="flex-1">
           {editProduct ? 'Update Product' : 'Create Product'}
         </Button>
-      </div>
+      </motion.div>
     </form>
   );
 
+  // Mobile: Use drawer
   if (isMobile) {
     return (
       <Drawer open={isOpen} onOpenChange={handleClose}>
@@ -207,30 +243,65 @@ export function ProductFormModal({
     );
   }
 
+  // Desktop: Modal with button-origin animation
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <>
+      {/* Backdrop */}
       <motion.div
+        className="fixed inset-0 z-50 bg-black/50"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
+        onClick={handleClose}
+      />
+
+      {/* Modal content originating from button */}
+      <motion.div
+        className="fixed z-50 w-full max-w-2xl"
+        initial={{
+          left: buttonPosition.x,
+          top: buttonPosition.y,
+          scale: 0,
+          opacity: 0,
+          x: '-50%',
+          y: '-50%',
+        }}
+        animate={{
+          left: '50%',
+          top: '50%',
+          scale: 1,
+          opacity: 1,
+          x: '-50%',
+          y: '-50%',
+        }}
+        exit={{
+          left: buttonPosition.x,
+          top: buttonPosition.y,
+          scale: 0,
+          opacity: 0,
+          x: '-50%',
+          y: '-50%',
+        }}
+        transition={{
+          type: 'spring',
+          damping: 25,
+          stiffness: 300,
+          mass: 0.8,
+        }}
+        style={{
+          transformOrigin: 'center center',
+        }}
       >
-        <DialogContent className="sm:max-w-[600px]">
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-          >
-            <DialogHeader>
-              <DialogTitle>
-                {editProduct ? 'Edit Product' : 'Create New Product'}
-              </DialogTitle>
-            </DialogHeader>
-            {formContent}
-          </motion.div>
-        </DialogContent>
+        <div className="rounded-lg border bg-background p-0 shadow-2xl">
+          <div className="border-b px-6 py-4">
+            <h2 className="text-xl font-semibold">
+              {editProduct ? 'Edit Product' : 'Create New Product'}
+            </h2>
+          </div>
+          <div className="px-6 py-6">{formContent}</div>
+        </div>
       </motion.div>
-    </Dialog>
+    </>
   );
 }

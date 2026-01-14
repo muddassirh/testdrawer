@@ -23,3 +23,8 @@ export interface Stats {
   totalSales: number;
   revenue: number;
 }
+
+export interface ButtonPosition {
+  x: number;
+  y: number;
+}
